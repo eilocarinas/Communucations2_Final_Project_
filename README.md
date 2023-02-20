@@ -6,7 +6,7 @@ compile 'play.py'
 
 tracks.py contains tracks, series of notes and binary meassages
 
-function.py, functions used 
+functions.py, functions used 
 
 
 tracks >> functions >> play
