@@ -60,7 +60,7 @@ def createnote(noteName="A4", type="random", amp=0.5, beats=1.0, filter=None, cu
     wave.write(filename=filename)
     audio = AudioSegment.from_wav(filename)
 
-    audio.low_pass_filter(500)
+    audio.low_pass_filter(400)
 
     return audio
 
@@ -91,8 +91,10 @@ def createseg(track, seg_track, digital_input):
             beats = bt/2
         elif two_bit[x] == '11':
             beats = bt*2
-        else:
+        elif two_bit[x] == '00':
             beats = bt/4
+        else:
+            beats = bt
         seg_track.append(createnote(track[x], beats=beats))
         print(track[x])
         print(two_bit[x])
