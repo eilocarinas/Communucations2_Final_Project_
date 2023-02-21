@@ -37,8 +37,6 @@ for i in range (0, 8):
     random_coeffs.append(random.uniform(-1, 1))
 
 fourier_coeffs = {
-    "sine": [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-    "trumpet": [0.1155, 0.3417, 0.1789, 0.1232, 0.0678, 0.0473, 0.0260, 0.0045, 0.0020],
     "random": random_coeffs 
 }
 
@@ -102,16 +100,18 @@ def createseg(track, seg_track, digital_input):
     print(two_bit)
 # mixing two tracks
 def mix2tracks(track1, track2, message1, message2):
+    
     seg_track1.clear()
     seg_track2.clear()
+    
     createseg(track1, seg_track1, message1)
     createseg(track2, seg_track2, message2)
     
     createSpace(seg_track1, attack=50, release=50)
     createSpace(seg_track2, attack=50, release=50)
+    
     song = AudioSegment.empty()
     
-
     for i in range(len(track1)):
         note1 = seg_track1[i]
         note2 = seg_track2[i]
