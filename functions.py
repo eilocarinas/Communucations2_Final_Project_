@@ -1,19 +1,23 @@
 import thinkdsp
-import random
 from track import *
 from pydub import AudioSegment
 from pydub.playback import play
+from matplotlib import pyplot
 
-# initialize list 
+
+
+# initialize list
 seg_track1 = []
 seg_track2 = [] 
 two_bit = []
+wave1 = []
+
 
 # beats
 bt = 1.5
 
 
-noteFreqs = {
+freq_list = {
     'C0':16.35, 'Db0':17.32,'D0':18.35,'Eb0':19.45,'E0':20.6,'F0':21.83,'Gb0':23.12,\
     'G0':24.5,'Ab0':25.96,'A0':27.5,'Bb0':29.14,'B0':30.87,'C1':32.7,'Db1':34.65,'D1':36.71,\
     'Eb1':38.89,'E1':41.2,'F1':43.65,'Gb1':46.25,'G1':49,'Ab1':51.91,'A1':55,'Bb1':58.27,\
@@ -29,39 +33,42 @@ noteFreqs = {
     'G7':3135.96,'Ab7':3322.44,'A7':3520,'Bb7':3729.31,'B7':3951.07,'C8':4186.01,'Db':4434.92,\
     'D8':4698.63,'Eb8':4978.03,'E8':5274.04,'F8':5587.65,'Gb8':5919.91,'G8':6271.93,'Ab8':6644.88,\
     'A8':7040,'Bb8':7458.62,'B8':7902.13, 'rest':0
-
 }
 
-random_coeffs = []
-for i in range (0, 8):
-    random_coeffs.append(random.uniform(-1, 1))
 
-fourier_coeffs = {
-    "random": random_coeffs 
-}
-
-def createnote(noteName="A4", type="random", amp=0.5, beats=1.0, filter=None, cutoff=None, filename="defaultFileName"):
+def createnote(noteName="A4", amp=1.0, beats=1.0, filename="defaultFileName"):
+    
     
     # Initialize some values, let signal be empty first
-    frequency = noteFreqs[noteName]
+    frequency = freq_list[noteName]
     duration = beats / 2
     sin_sig = thinkdsp.SinSignal(freq=0)
     
     # Add harmonics to the signal according to their Fourier Synthesis Coefficients
     
-    for i in range(0, 8):  # delete if not fourier
-        sin_sig += thinkdsp.SinSignal(freq=frequency*i, amp=amp*fourier_coeffs[type][i], offset=0)
-    
-    # Convert signal into wave to .wav file to AudioSegment to be mixed and played by the program
-    wave = sin_sig.make_wave(duration=duration, start=0, framerate=44100)
+    for i in range(1, 8): 
+         sin_sig += thinkdsp.SinSignal(freq=frequency*i, amp=amp/i, offset=0)
+        
+    #sin_sig += thinkdsp.SinSignal(freq=frequency, amp=amp, offset=0)
+    # Convert signal into wave to .wav file to audiosegment
+    # 48000 standard sampling in recording studios, sampling rate = frame rate
+    wave = sin_sig.make_wave(duration=duration, start=0, framerate=48000)
+    wave1.append(wave)
+    print(noteName)
 
     wave.write(filename=filename)
     audio = AudioSegment.from_wav(filename)
 
-    audio.low_pass_filter(400)
-
     return audio
 
+def make_plot(track):
+   for i in range(len(track)):
+        wave = wave1[i]
+        
+        wavesp = wave.make_spectrum()
+   wavesp.plot()
+   pyplot.show()
+# creating space between consecutive notes
 def createSpace(track, attack=100, release=100):
     for i in range(0, len(track) - 1):
         if track[i][0:2] == track[i + 1][0:2]:
@@ -82,33 +89,38 @@ def createseg(track, seg_track, digital_input):
     groupBits(digital_input)
     for x in range(0, len(track)):
         print(len(two_bit))
-        
-        if two_bit[x] == '10':
-            beats = bt  
+# symbols to corres. decimal values
+        if two_bit[x] == '00':
+            beats = bt/4  
         elif two_bit[x] == '01':
             beats = bt/2
+        elif two_bit[x] == '10':
+            beats = bt
         elif two_bit[x] == '11':
             beats = bt*2
-        elif two_bit[x] == '00':
-            beats = bt/4
         else:
             beats = bt
-        seg_track.append(createnote(track[x], beats=beats))
-        print(track[x])
-        print(two_bit[x])
- 
+# creating an array of audio segments          
+        seg_track.append(createnote(track[x], beats=beats, amp = 1.0, from_track=track))
+        print("Note:", track[x])
+        print("sym:", two_bit[x], ":", beats)
+#  make_plot(track)
     print(two_bit)
-# mixing two tracks
-def mix2tracks(track1, track2, message1, message2):
     
+# mixing two tracks
+
+def mixtracks(track1, track2, message1, message2):
+# resets the list
+ 
     seg_track1.clear()
     seg_track2.clear()
     
     createseg(track1, seg_track1, message1)
     createseg(track2, seg_track2, message2)
+    make_plot(track1)
     
-    createSpace(seg_track1, attack=50, release=50)
-    createSpace(seg_track2, attack=50, release=50)
+   # createSpace(seg_track1, attack=50, release=50)
+   # createSpace(seg_track2, attack=50, release=50)
     
     song = AudioSegment.empty()
     
