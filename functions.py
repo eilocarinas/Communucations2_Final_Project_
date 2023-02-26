@@ -44,11 +44,9 @@ def createnote(noteName="A4", amp=1.0, beats=1.0, filename="defaultFileName"):
     duration = beats / 2
     sin_sig = thinkdsp.SinSignal(freq=0)
     
-    # Add harmonics to the signal according to their Fourier Synthesis Coefficients
-    
-    for i in range(1, 8): 
-         sin_sig += thinkdsp.SinSignal(freq=frequency*i, amp=amp/i, offset=0)
-        
+    # Add harmonics to the signal 
+    for i in range(0, 8): 
+         sin_sig += thinkdsp.SinSignal(freq=frequency*(i*(2**(1/12))), amp=amp/(i+1), offset=0)
     #sin_sig += thinkdsp.SinSignal(freq=frequency, amp=amp, offset=0)
     # Convert signal into wave to .wav file to audiosegment
     # 48000 standard sampling in recording studios, sampling rate = frame rate
@@ -58,7 +56,7 @@ def createnote(noteName="A4", amp=1.0, beats=1.0, filename="defaultFileName"):
 
     wave.write(filename=filename)
     audio = AudioSegment.from_wav(filename)
-
+    audio.low_pass_filter(1000)
     return audio
 
 def make_plot(track):
@@ -68,13 +66,6 @@ def make_plot(track):
         wavesp = wave.make_spectrum()
    wavesp.plot()
    pyplot.show()
-# creating space between consecutive notes
-def createSpace(track, attack=100, release=100):
-    for i in range(0, len(track) - 1):
-        if track[i][0:2] == track[i + 1][0:2]:
-            track[i] = track[i].fade_out(duration=release)
-            track[i + 1] = track[i + 1].fade_in(duration=attack)
-
 
 # grouping the message into two bits
 def groupBits(message):
@@ -89,6 +80,8 @@ def createseg(track, seg_track, digital_input):
     groupBits(digital_input)
     for x in range(0, len(track)):
         print(len(two_bit))
+        
+        
 # symbols to corres. decimal values
         if two_bit[x] == '00':
             beats = bt/4  
@@ -100,8 +93,9 @@ def createseg(track, seg_track, digital_input):
             beats = bt*2
         else:
             beats = bt
+
 # creating an array of audio segments          
-        seg_track.append(createnote(track[x], beats=beats, amp = 1.0, from_track=track))
+        seg_track.append(createnote(track[x], beats=beats, amp = 1.0))
         print("Note:", track[x])
         print("sym:", two_bit[x], ":", beats)
 #  make_plot(track)
@@ -117,11 +111,11 @@ def mixtracks(track1, track2, message1, message2):
     
     createseg(track1, seg_track1, message1)
     createseg(track2, seg_track2, message2)
-    make_plot(track1)
+   # make_plot(track1)
     
    # createSpace(seg_track1, attack=50, release=50)
    # createSpace(seg_track2, attack=50, release=50)
-    
+   
     song = AudioSegment.empty()
     
     for i in range(len(track1)):
