@@ -36,27 +36,31 @@ freq_list = {
 }
 
 
-def createnote(noteName="A4", amp=1.0, beats=1.0, filename="defaultFileName"):
+def make_note(Name="A4", amp=1.0, beats=1.0, filename="defaultFileName"):
     
     
     # Initialize some values, let signal be empty first
-    frequency = freq_list[noteName]
+    frequency = freq_list[Name]
     duration = beats / 2
     sin_sig = thinkdsp.SinSignal(freq=0)
     
-    # Add harmonics to the signal 
-    for i in range(0, 8): 
-         sin_sig += thinkdsp.SinSignal(freq=frequency*(i*(2**(1/12))), amp=amp/(i+1), offset=0)
-    #sin_sig += thinkdsp.SinSignal(freq=frequency, amp=amp, offset=0)
+    # Add overtones/ harmonics to the signal 
+    for i in [x for x in range(0, 8) if x != 6]: 
+
+        sin_sig += thinkdsp.SinSignal(freq=(frequency+(frequency*i)), amp=amp/(i+1), offset=90)
+    # in mathematical expression sinsignal looks like this y = A cos(2πft + φ0)
+    
+    # sin_sig += thinkdsp.SinSignal(freq=frequency, amp=amp, offset=0)
+    
     # Convert signal into wave to .wav file to audiosegment
     # 48000 standard sampling in recording studios, sampling rate = frame rate
     wave = sin_sig.make_wave(duration=duration, start=0, framerate=48000)
     wave1.append(wave)
-    print(noteName)
+    print(Name)
 
     wave.write(filename=filename)
     audio = AudioSegment.from_wav(filename)
-    audio.low_pass_filter(1000)
+  
     return audio
 
 def make_plot(track):
@@ -95,7 +99,7 @@ def createseg(track, seg_track, digital_input):
             beats = bt
 
 # creating an array of audio segments          
-        seg_track.append(createnote(track[x], beats=beats, amp = 1.0))
+        seg_track.append(make_note(track[x], beats=beats, amp = 1.0))
         print("Note:", track[x])
         print("sym:", two_bit[x], ":", beats)
 #  make_plot(track)
