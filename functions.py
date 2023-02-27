@@ -1,8 +1,9 @@
 import thinkdsp
+import random
+import matplotlib.pyplot as plt
 from track import *
 from pydub import AudioSegment
 from pydub.playback import play
-from matplotlib import pyplot
 
 
 
@@ -37,7 +38,7 @@ freq_list = {
 
 
 def make_note(Name="A4", amp=1.0, beats=1.0, filename="defaultFileName"):
-    
+    wave1.clear()
     
     # Initialize some values, let signal be empty first
     frequency = freq_list[Name]
@@ -47,15 +48,22 @@ def make_note(Name="A4", amp=1.0, beats=1.0, filename="defaultFileName"):
     # Add overtones/ harmonics to the signal 
     for i in [x for x in range(0, 8) if x != 6]: 
 
-        sin_sig += thinkdsp.SinSignal(freq=(frequency+(frequency*i)), amp=amp/(i+1), offset=90)
-    # in mathematical expression sinsignal looks like this y = A cos(2πft + φ0)
-    
-    # sin_sig += thinkdsp.SinSignal(freq=frequency, amp=amp, offset=0)
+        sin_sig += thinkdsp.SinSignal(freq=(frequency+(frequency*i)), amp=amp/(i+1), offset=0)
+        # in mathematical expression sinsignal looks like this y = A sin(2πft + φ0)
+        
+        signal = thinkdsp.SinSignal(freq=(frequency+(frequency*i)), amp=amp/(i+1), offset=0)
+
+        # different duration for plotting
+        signal = signal.make_wave(duration=0.005, start=0, framerate=48000)
+        wave1.append(signal)
+
     
     # Convert signal into wave to .wav file to audiosegment
     # 48000 standard sampling in recording studios, sampling rate = frame rate
     wave = sin_sig.make_wave(duration=duration, start=0, framerate=48000)
-    wave1.append(wave)
+    final_wave = sin_sig.make_wave(duration=0.005, start=0, framerate=48000)
+    wave1.append(final_wave)
+    make_plot(name= Name)
     print(Name)
 
     wave.write(filename=filename)
@@ -63,13 +71,21 @@ def make_note(Name="A4", amp=1.0, beats=1.0, filename="defaultFileName"):
   
     return audio
 
-def make_plot(track):
-   for i in range(len(track)):
-        wave = wave1[i]
-        
-        wavesp = wave.make_spectrum()
-   wavesp.plot()
-   pyplot.show()
+# create plot
+def make_plot(name):
+    color = ['red', 'orange', 'yellow', 'green', 'blue', 'violet', 'pink', 'black' ]
+    plt.clf()
+    for i in range(0, len(wave1)):
+        plt.subplot(len(wave1), 1, (i+1))
+        wave1[i].plot(color = color[i] )
+        # Get a reference to the figure manager
+    fig_manager = plt.get_current_fig_manager()
+
+    # Set the window title of the plot
+    fig_manager.set_window_title(name)
+    plt.legend()
+   
+    plt.show()
 
 # grouping the message into two bits
 def groupBits(message):
@@ -115,11 +131,7 @@ def mixtracks(track1, track2, message1, message2):
     
     createseg(track1, seg_track1, message1)
     createseg(track2, seg_track2, message2)
-   # make_plot(track1)
     
-   # createSpace(seg_track1, attack=50, release=50)
-   # createSpace(seg_track2, attack=50, release=50)
-   
     song = AudioSegment.empty()
     
     for i in range(len(track1)):
