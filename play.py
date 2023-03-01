@@ -8,6 +8,7 @@ part3 = mixtracks(track1 = part3_note, track2 = part3_note_f, message1 = part3_m
 
 # arrays into one
 song = part1 + part1+ part2 + part2 + part3 + part3
+combined = AudioSegment.empty()
 
 print("Playing:  Lupang Hinirang")
 

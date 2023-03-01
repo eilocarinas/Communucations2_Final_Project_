@@ -12,6 +12,7 @@ seg_track1 = []
 seg_track2 = [] 
 two_bit = []
 wave1 = []
+to_mp3 = []
 
 
 # beats
@@ -45,7 +46,7 @@ def make_note(Name="A4", amp=1.0, beats=1.0, filename="defaultFileName"):
     duration = beats / 2
     sin_sig = thinkdsp.SinSignal(freq=0)
     
-    # Add overtones/ harmonics to the signal 
+    # Add overtones 
     for i in [x for x in range(0, 8) if x != 6]: 
 
         sin_sig += thinkdsp.SinSignal(freq=(frequency+(frequency*i)), amp=amp/(i+1), offset=0)
@@ -68,7 +69,7 @@ def make_note(Name="A4", amp=1.0, beats=1.0, filename="defaultFileName"):
 
     wave.write(filename=filename)
     audio = AudioSegment.from_wav(filename)
-  
+    to_mp3.append(audio)
     return audio
 
 # create plot
@@ -97,10 +98,14 @@ def groupBits(message):
 
 # creating an array of audio segments      
 def createseg(track, seg_track, digital_input):
+    
+    if (len(track)*2) != (len(digital_input)):
+        for i in range((len(track)*2)-(len(digital_input))):
+            digital_input+="1"
+            
     groupBits(digital_input)
     for x in range(0, len(track)):
         print(len(two_bit))
-        
         
 # symbols to corres. decimal values
         if two_bit[x] == '00':
